@@ -1,0 +1,431 @@
+---
+title: "2022 Stargazer Tutorial"
+output: pdf
+date: 05-04-22
+author: daniel turner (dturner at northwestern at u dot edu)
+---
+
+# Part 1: Intro/Setup
+Welcome to my workshop on using the `stargazer` package to improve your visualization of data summaries, such as regression model outputs. 
+
+Many researchers would benefit from a single-function solution to show their results in a clear and reproducible way. I think there are applications for everyday analysis, as well as preparation of manuscripts and presentations.
+
+Let's get started!
+
+
+```{r setup}
+
+# Run this chunk to get packages and data loaded and ready.
+
+# Install stargazer if needed
+# install.packages( "stargazer", dependencies = TRUE )
+
+# Required packages
+library( stargazer )
+library( tidyverse ) # mainly we want dplyr and ggplot2
+
+# Optional packages
+require( tinytex )
+require( rticles )
+require( bookdown )
+
+
+```
+
+
+## 1.1: R built-ins
+If you learned how to use R from a tutorial, you have probably been introduced to datasets like `iris` and `mtcars`, which are examples of R's built-in datasets.
+
+Let's take a moment to appreciate the genius of including standard datasets with the coding language so that people can create consistent examples that always work out-of-the-box. In the code chunk below, you can see all the datasets available in your specific R environment right now. Many of them are a part of the `datasets` package.
+
+
+```{r r-built-ins}
+
+# This chunk shows the availabile built-in datasets.
+
+data()
+
+library(help = "datasets")
+
+```
+
+
+## 1.2: LaTeX
+The idea behind LaTeX is to make typesetting scientific and technical papers less about fighting with a word processor and more about presenting the information in the clearest way. The way `stargazer` works with LaTeX is part of the Knit functionality, so you don't see the result until your R Markdown file gets saved as a PDF.
+
+We will mostly use the 'text' output of `stargazer` to remain working in R, but changing formats is easy by changing the *type* argument.
+
+In the code chunk below, I reproduce an example of LaTeX code output by `stargazer` to show how the syntax looks. This is as deep as we will go into LaTeX itself, since it's a big topic, but suffice to say that everything output by `stargazer` is 100% compatible with LaTeX editors, including Overleaf.com (which I recommend).
+
+
+```{LaTeX_example eval=FALSE, include=FALSE}
+
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+mpg & 32 & 20.091 & 6.027 & 10.400 & 33.900 \\ 
+cyl & 32 & 6.188 & 1.786 & 4 & 8 \\ 
+disp & 32 & 230.722 & 123.939 & 71.100 & 472.000 \\ 
+hp & 32 & 146.688 & 68.563 & 52 & 335 \\ 
+drat & 32 & 3.597 & 0.535 & 2.760 & 4.930 \\ 
+wt & 32 & 3.217 & 0.978 & 1.513 & 5.424 \\ 
+qsec & 32 & 17.849 & 1.787 & 14.500 & 22.900 \\ 
+vs & 32 & 0.438 & 0.504 & 0 & 1 \\ 
+am & 32 & 0.406 & 0.499 & 0 & 1 \\ 
+gear & 32 & 3.688 & 0.738 & 3 & 5 \\ 
+carb & 32 & 2.812 & 1.615 & 1 & 8 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+
+```
+
+
+# Part 2: Summary statistics
+Now, we will use `stargazer` to summarize the data from 'mtcars', 'iris', and 'trees'. You will see that, in addition to being a tool for sharing your findings, it can be used to quickly check the statistical properties of a dataset.
+
+
+```{r}
+
+# Motor Trend Car Road Tests
+stargazer( data = mtcars,     # data
+           type = "text",     # default is "latex"
+           title = "mtcars" ) # optional title
+
+# Edgar Anderson's Iris Data
+stargazer(data = iris, type = "text", title = "iris")
+
+# Diameter, Height and Volume for Black Cherry Trees
+stargazer(data = trees, type = "text", title = "trees")
+
+```
+
+
+## 2.1: Hiding summary statistics
+The default behavior of `stargazer` is to display some summary statistics: count, mean, standard deviation, min, and max. Each of these options can be toggled individually like so:
+
+
+```{r default_sum_stats}
+
+# At least one column is needed for the function to work, so I'm commenting out the line hiding SD calculations here
+stargazer( data = mtcars,     # data
+           type = "text",     # default is "latex"
+           title = "mtcars",  # optional title
+           # mean.sd = FALSE,   # hiding sd
+           min.max = FALSE,   # hiding min max
+           nobs = FALSE)      # hiding observation count (N)
+
+```
+
+
+## 2.2: Summary statistics with logicals
+Notice that there are two columns with a min/max of 0/1.
+
+These are logicals, which sometimes don't make sense when computing summary stats. Once we convert the digital encoding to R logicals, we can tell `stargazer` to ignore them while computing the summaries.
+
+
+```{r logical_sum_stat}
+
+# Converting the 0/1 logicals to TRUE/FALSE
+cars <- mtcars
+cars$vs <- cars$vs == 1  # 1 means V-shaped engine, 0 means straight-line engine
+cars$am <- cars$am == 1  # 1 means manual transmission, 0 means automatic
+
+# Now, stargazer will see 'vs' and 'am' as logicals
+stargazer( data = cars,              # now the logical fields are explicitly encoded
+           type = "text",            # default is "latex"
+           summary.logical = FALSE)  # hiding summary stats for logicals with one argument
+
+```
+
+
+## 2.3: Summary statistics with logicals
+If we use the *summary.stat* argument, we can add more statistics to calculate. You can even define your own custom functions to apply to the data through the *apply* family of functions.
+
+
+```{r custom_sum_stats}
+
+# summary.stat takes a list of character vectors -- this example is currently comprehensive
+stargazer( data = cars,                                      # data
+           type = "text",                                    # default is "latex"
+           summary.logical = FALSE,                          # still hiding logicals
+           summary.stat = c("n", "mean", "sd", "min", "max", # "old" stat columns
+                            "median",                        # median
+                            "p25",                           # 25th %-ile
+                            "p75"))                          # 75th %-ile
+
+```
+
+
+## 2.4: Specifying which variables to include
+Two functions, *keep* and *omit* regulate which variables are included in the output. Instead of excluding the two logical fields, we could have named them as arguments of *omit*, but it's usually better to get the data classed correctly anyway.
+
+Another common issue with vectors of named variables is that names tend to change. The makers of the packages thought of this problem, though, and these two functions also work with vectors of numerics, representing the columns by position. Feel free to adapt the code chunk to try it out.
+
+
+```{r keep_variables}
+
+# Specified variables and summary stats
+stargazer( data = cars,              
+           type = "text",            
+           keep = c( "mpg", "hp" ),       # specified variables using *keep*
+           summary.stat = c( "n", "mean" ))  # specified summary stats
+
+# Specified variables and summary stats
+stargazer( data = cars,              
+           type = "text",            
+           omit = c( "cyl","disp","drat","wt","qsec","vs","am","gear","carb" ),  # using *omit* instead
+           summary.stat = c( "n", "mean" ))  # specified summary stats
+
+```
+
+In the next section, we look at how the same general approach to displaying summary statistics but for dataframes and matrix-style data in general.
+
+
+# Part 3: Raw data
+You can use `stargazer` to create pretty tables from most rectangular sources of raw data, such as dataframes and matrixes.
+
+
+*Why use Stargazer for showing raw data?*
+In my view, the idea would be to show your summary statistics, model output, and raw data using the same formatting and style. There are many ways to accomplish this, but the reason to choose `stargazer` is to get fast and consistent results.
+
+The key argument for displaying raw data is *summary*, which should be set to *FALSE*.
+
+
+```{r raw_data}
+
+# In this example I also show how to reorder the column names by index
+stargazer( data = cars %>% sample_n( 10 ),      # using dplyr to sample 10 rows of cars
+           title = "10 random rows from cars",  # adding a title
+           type = "text",                       # default is "latex"
+           summary = FALSE,                     # output the contents without summarizing
+           order = c(3, 1, 5)                   # reordering the columns
+)
+
+```
+
+In the next section, we use `stargazer` to summarize statistical models. 
+
+
+# Part 4: Tables from model outputs
+The data structure of statistical models varies widely, but `stargazer` seems to be an exceptionally flexible option for creating clearly formatted model outputs with little fuss.
+
+
+# 4.1 Linear regression models
+Practically every R user is familiar with the `lm()` function, from the `stats` package, which fits linear models. The typical way of examining the output of such models is by using `summary()`, which reports important measures about significance and fitment.
+
+In the code chunk below, we create a linear model that uses the Motor Trend car data to predict mileage based on engine size (disp), weight (wt), and horsepower (hp). I'm testing all interactions, but no random effects in this example because there are few observations.
+
+
+```{r linear_model_output}
+
+# Basic model
+cars.model = lm( data = cars, formula = mpg ~ disp * wt * hp)
+
+# R's basic output
+summary( cars.model )
+
+# Stargazer's basic output
+stargazer( data = cars.model, type = "text")
+
+```
+
+
+Comparing model results side-by-side is a common task, such as when one is trying different fitments or showing the superiority of one model over another. In the next example, we will do a little of both!
+
+We will create 4 models varying 2 factors which are expected to affect modeling: (1) whether the engine is a V-shaped or Inline (straight) engine, and (2) whether horsepower improves the model.
+
+
+```{r comparing_multiple_models}
+
+# Four separate simple linear models, varying the inclusion or exclusion of 'hp' with V and I-shaped engines.
+cars.model.v.1 = lm( data = subset(cars, vs == FALSE), formula = mpg ~ disp * wt * hp)
+cars.model.i.1 = lm( data = subset(cars, vs == TRUE),  formula = mpg ~ disp * wt * hp)
+cars.model.v.2 = lm( data = subset(cars, vs == FALSE), formula = mpg ~ disp * wt) 
+cars.model.i.2 = lm( data = subset(cars, vs == TRUE),  formula = mpg ~ disp * wt)
+
+# Stargazer will intelligently adapt if given multiple models 
+stargazer( cars.model.i.1, cars.model.v.1,                  # The models to compare side-by-side
+           cars.model.i.2, cars.model.v.2,                  # The models to compare side-by-side
+           covariate.labels = c("Displacement (disp)",      # Labels for the main effects, for clarity
+                                "Weight (wt)",
+                                "Horsepower (hp)"),
+           # no.space = FALSE,                              # I usually like the compact view
+           # model.numbers = FALSE,                         # I usually keep the automatic numbering
+           type = "text")                                   # Override default LaTeX format
+
+```
+
+
+# 4.2 Customizing model outputs
+The level of customization available for model outputs in `stargazer` is deep.
+
+Basically, `stargazer` is parsing the model output into its fundamental elements before displaying anything, so you can change what's displayed, where, and how. For example, let's say we have different models for the same data and want to compare them.
+
+Ideally, we would want to be able to show the models in any order and grouping, with the ability to add labels for everything, including the dependent variable. For researchers like me who sometimes use cryptic labels for measures, this means we can mask the variable names that are used in the formula ("f0_c_log_b") with something more human-readable ("pitch").
+
+In the code chunk below, we add labels for the covariates (variables), columns (models), and dependent variable. 
+
+
+```{r model_output_columns_separate}
+
+# Separate labels for each column
+stargazer( cars.model.i.1, cars.model.v.1,                   # The models to compare side-by-side
+           cars.model.i.2, cars.model.v.2,                   # The models to compare side-by-side
+           covariate.labels = c( "Displacement (disp)",      # Labels for the main effects, for clarity
+                                "Weight (wt)",
+                                "Horsepower (hp)"),
+           column.labels = c( "Inline + HP", "V + HP",
+                              "Inline - HP", "V - HP" ),     # Labels for the models
+           model.numbers = FALSE,                            # Turning off the numbering
+           title = "Separate labels for each model",         # Title
+           dep.var.labels = c("Miles/Gallon"),               # We can replace the label of the dependent variable
+           dep.var.labels.include = TRUE,                    # Or you hide the dependent variable altogether (FALSE)
+           type = "text")                                    # Override default LaTeX format
+
+```
+
+
+The next code chunk is highly similar, but instead of assigning each model a separate label, I group the first and second pairs, so we will only have 2 labels (either Inline engine shape or V engine shape).
+
+
+```{r model_output_columns}
+
+# Grouping models with labels
+stargazer( cars.model.i.1, cars.model.v.1,                   # The models to compare side-by-side
+           cars.model.i.2, cars.model.v.2,                   # The models to compare side-by-side
+           covariate.labels = c( "Displacement (disp)",      # Labels for the main effects, for clarity
+                                "Weight (wt)",
+                                "Horsepower (hp)" ),
+           column.labels = c( "Inline Engine", "V Engine" ), # Label list
+           column.separate = c( 2, 2 ),                      # Map label 1 to cols 1-2 and label 2 to cols 3-4
+           model.numbers = FALSE,                            # Turning off the numbering
+           no.space = TRUE,                                  # I usually like the compact view (TRUE)
+           title = "Grouping labels for 1-2 and 3-4",        # Title
+           dep.var.labels = c( "Miles/Gallon" ),             # We can replace the label of the dependent variable
+           type = "text")                                    # Override default LaTeX format
+
+```
+
+
+# 4.3 Customizing the model output statistics
+As with our summary statistics `stargazer` provides fine-grained control over which model statistics are displayed.
+
+
+```{r model_output_statistic_customization}
+
+# Key arguments for modifying the model output statistics
+stargazer( cars.model.i.1, cars.model.v.1,                   
+           cars.model.i.2, cars.model.v.2,                   
+           covariate.labels = c( "Displacement (disp)",     
+                                "Weight (wt)",
+                                "Horsepower (hp)"),
+           column.labels = c( "Inline + HP", "V + HP",
+                              "Inline - HP", "V - HP" ),     
+           model.numbers = FALSE,                            
+           title = "Adjusting the display of model statistics",         
+           dep.var.labels = c( "Miles/Gallon" ),             
+           dep.var.labels.include = TRUE,                    
+           t.auto = FALSE,                                   # Have stargazer calculate test statstics (i.e. z score) (can be custom)
+           p.auto = FALSE,                                   # Have stargazer calculate p-values (can be custom)
+           ci = FALSE,                                       # Replace standard error with confidence intervals
+           digits = 1,                                       # Round results to 1 digit (instead of the default 3)
+           single.row = TRUE,                                # Instead of stacking statistics, put them in 1 row
+           type = "text")                                    
+
+```
+
+
+*Custom p and z calculations*
+Another feature of `stargazer` which I think is useful is the ability to override the built-in p-value and other test statistics (ci, z, t). This seems really useful in cases where p-values need to be corrected, which could be done with the argument *p.auto = FALSE* and defining the new p-value function with *apply.p*. For t/z values, there's *t.auto* and for ci there's *ci.custom*--but you'll need to set *ci = TRUE* to calculate ci instead of standard error.
+
+
+# 4.4 Other types of models
+You can see all the types of models supported by `stargazer` through the Help screen, which can be accessed with the line below.
+
+```{r stargazer_compatible_models}
+
+?`stargazer models`
+
+```
+
+
+# 4.5 Coding challenge
+If you want to get some hands-on coding practice using `stargazer`, try working through my coding challenge, which I preview below.
+
+```{r coding_challenge_preview}
+
+# I will make this code chunk available the day of the live workshop
+
+# Part 1: Table of raw data
+# Part 2: Summary statistics table
+# Part 3: Modeling output table
+
+```
+
+
+# Part 5: Related tips and tricks for R users who publish
+This seems like as good a place as any to squeeze-in a few more tips and tricks for getting the most out of your R skills when it's time to publish your work. 
+
+
+## 5.1: Save high-resolution figures from ggplot objects
+Exporting your plots in high-res is key to creating a professional look, especially when it comes to printed posters, which are typically larger than 
+
+Printed plots have different resolution needs, especially when it comes to poster design. Here's a recipe that I use to scale `ggplot` output.
+
+
+```{r tip_1_ggplot}
+
+# Let's start by making a toy plot showing engine size (disp) and power (hp)
+ggplot( cars, aes( disp, hp )) +
+  geom_point() +
+  geom_smooth(method='lm') + 
+  xlab("Displacement (disp)") + 
+  ylab("Horsepower (hp)") + 
+  ggtitle("Displacement and Power are Positively Related")
+
+# This is how I would export a figure that's A4-size
+ggsave("./ggsave_example.tiff", width=8.5, height=11, dpi=300)
+
+```
+
+
+## 5.2: Consider using the `bookdown` package for creating hierarchical documents
+Let's say you fully commit to using R for your next paper because `stargazer` makes displaying tables so easy. How are you going to keep everything organized?
+
+You could use the package `bookdown` to do the layout and typesetting for your whole paper (or book, or tutorial, etc). Note that `bookdown` can output in HTML, PDF, or EPUB, but not LaTeX. The syntax follows R Markdown (like this tutorial), so you can focus on content, not formatting.
+
+To see a live example from my field, a former postdoc created a tutorial on corpus phonetics using `bookdown`: https://www.eleanorchodroff.com/tutorial/index.html
+
+More examples can be found on the `bookdown` page:
+https://pkgs.rstudio.com/bookdown/articles/examples.html
+
+
+## 5.3: LaTeX users should know about the `rticles` package
+If you're using LaTeX with R, you should know that there's a package that bundles ready-to-use journal article templates, which is compatible with `stargazer` called `rticles`.
+
+Essentially, with `rticles`, you write your article in R Markdown and *knit* the final article together.
+
+```{r tip_3_rticles_list}
+
+# List of journals with preexisting rticles templates
+rticles::journals()
+
+```
+
+To use this package, you just need to create a new R Markdown document inside RStudio and select "From Template" (new option). 
+These templates include the required elements for a submission, as well as style notes, and a file to assemble the content into the journal's desired layout. Elegant!
+
+
+# Part 6: Conclusion
+Researchers generally avoid slowing down their output to pour more time into laying out their data and findings.
+
+The reason why `stargazer` is a good package for R users who are working on publishing their work is because it dynamically selects reasonable defaults, so you do not need to spend a lot of time with it to get an acceptable result. What makes it a *great package* is that every element can be customized (plus, if you use LaTeX, you have full control over the final look).
+
+I recommend using it on your next project!
+
