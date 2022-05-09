@@ -5,12 +5,21 @@ date: 05-09-22
 author: daniel turner (dturner at northwestern at u dot edu)
 ---
 
+     _______..___________.     ___      .______        _______      ___       ________   _______ .______      
+    /       ||           |    /   \     |   _  \      /  _____|    /   \     |       /  |   ____||   _  \     
+   |   (----``---|  |----`   /  ^  \    |  |_)  |    |  |  __     /  ^  \    `---/  /   |  |__   |  |_)  |    
+    \   \        |  |       /  /_\  \   |      /     |  | |_ |   /  /_\  \      /  /    |   __|  |      /     
+.----)   |       |  |      /  _____  \  |  |\  \----.|  |__| |  /  _____  \    /  /----.|  |____ |  |\  \----.
+|_______/        |__|     /__/     \__\ | _| `._____| \______| /__/     \__\  /________||_______|| _| `._____|
+                                                                                                              
+                                                                                                              
 # Part 1: Intro/Setup
 Welcome to my workshop on using the `stargazer` package to improve your visualization of data summaries, such as regression model outputs. 
 
 Many researchers would benefit from a single-function solution to show their results in a clear and reproducible way. I think there are applications for everyday analysis, as well as preparation of manuscripts and presentations.
 
 Let's get started! 
+
 
 
 ```{r setup}
@@ -357,17 +366,10 @@ You can see all the types of models supported by `stargazer` through the Help sc
 
 
 # 4.5 Coding challenge
-If you want to get some hands-on coding practice using `stargazer`, try working through my coding challenge, which I preview below.
+If you want to get some hands-on coding practice using `stargazer`, try working through my coding challenge.
 
-```{r coding_challenge_preview}
-
-# I will make this code chunk available the day of the live workshop
-
-# Part 1: Table of raw data
-# Part 2: Summary statistics table
-# Part 3: Modeling output table
-
-```
+*Data:* Fuel efficiency data for 33k cars (versus 32 cars in MTcars)
+*Parts:* (1) Raw data table; (2) Summary statistics table; (3) Model output table
 
 
 # Part 5: Related tips and tricks for R users who publish
