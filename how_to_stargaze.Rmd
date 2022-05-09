@@ -1,7 +1,7 @@
 ---
 title: "2022 Stargazer Tutorial"
 output: pdf
-date: 05-04-22
+date: 05-09-22
 author: daniel turner (dturner at northwestern at u dot edu)
 ---
 
@@ -10,7 +10,7 @@ Welcome to my workshop on using the `stargazer` package to improve your visualiz
 
 Many researchers would benefit from a single-function solution to show their results in a clear and reproducible way. I think there are applications for everyday analysis, as well as preparation of manuscripts and presentations.
 
-Let's get started!
+Let's get started! 
 
 
 ```{r setup}
@@ -170,25 +170,26 @@ Another common issue with vectors of named variables is that names tend to chang
 
 ```{r keep_variables}
 
-# Specified variables and summary stats
+# Specified variables and summary stats...
 stargazer( data = cars,              
            type = "text",            
-           keep = c( "mpg", "hp" ),       # specified variables using *keep*
+           keep = c( "mpg", "hp" ),          # ...using *keep*
            summary.stat = c( "n", "mean" ))  # specified summary stats
 
-# Specified variables and summary stats
+# Identical result...
 stargazer( data = cars,              
            type = "text",            
-           omit = c( "cyl","disp","drat","wt","qsec","vs","am","gear","carb" ),  # using *omit* instead
-           summary.stat = c( "n", "mean" ))  # specified summary stats
+           omit = c( "cyl","disp","drat","wt","qsec","vs","am","gear","carb" ),  # ...using *omit* instead
+           summary.stat = c( "n", "mean" ))                                      # specified summary stats
 
 ```
+
 
 In the next section, we look at how the same general approach to displaying summary statistics but for dataframes and matrix-style data in general.
 
 
 # Part 3: Raw data
-You can use `stargazer` to create pretty tables from most rectangular sources of raw data, such as dataframes and matrixes.
+You can use `stargazer` to create aesthetically pleasing tables from most rectangular sources of raw data, such as dataframes and matrixes.
 
 
 *Why use Stargazer for showing raw data?*

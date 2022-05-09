@@ -1,0 +1,109 @@
+---
+title: "how_to_stargaze_challenge_solution"
+output: pdf_document
+date: 05-09-22
+author: daniel turner (dturner at northwestern at u dot edu)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# packages
+library( stargazer )
+library( tidyverse )
+
+# install this package to download the data
+# install.packages('fueleconomy')
+
+# load the data
+more_cars = fueleconomy::vehicles # the new data is bundled inside ggplot2
+og_cars = datasets::mtcars        # if you want to compare to previous dataset
+
+```
+
+
+# Stargazer challenge question
+To get personal experience using `stargazer`, please follow along with this coding challenge. If you get stuck, or want to see my sample solution, check out the file *stargaze_challenge_solution.Rmd*. 
+
+Here's everything you need to know to get started:
+1. In Part A, you will create a table from a dataframe for showing raw data
+2. In Part B, your task will be to show a stargazer summary statistics table
+3. In Part c, you will fit and summarize a statistical model
+
+## About the more_cars data
+The data is similar to the Motor Trend car data from the tutorial, but updated with many more cars and variables. Its source is the EPA, collected from 1985-2015, and it excludes vehicles with missing data. The data is about 1000x larger than the *MTcars*.
+
+
+## Part A: Raw data
+Edit the code chunk below so that the result is 2 tables with the head() of both `more_cars` and `og_cars`, which will give you a sense for how these data are similar, and different. If you want to sample N rows instead of taking the first N rows, the code is in the tutorial.
+
+
+```{r stargazer_challenge_A}
+
+# Make a table of the raw data (only the head)
+stargazer( data = more_cars %>% head(),    # let the data be the head of more_cars
+           # title = "More cars raw data", # add a title for each table
+           type = "text"                   # design in "text" mode, output in whatever format you need
+)
+
+# Same for og_cars
+stargazer( data = og_cars %>% head(),    # let the data be the head of og_cars
+           type = "text"                 
+)
+```
+
+## Part B: Summary stats
+In this code chunk you will make a summary statistics table for `more_cars` with customizations: (1) Omit the column with the "id" field, which only makes sense if joining to other EPA data; (2) remove the "," separating thousands by settings the `digits.separator` argument, and round all summary stats to the nearest whole number by stting the `digits` argument. See the comments for more details.
+
+```{r stargazer_challenge_B}
+
+# Basic recipe for the default summary statistics table
+stargazer( data = og_cars,
+           type = "text")
+
+# Here are the arguments you will need to customize the output of more_cars:
+# omit =                # let 'omit' be 'c("id")'
+# digit.separator =     # let 'digit.separator' be ""
+# digits =              # let 'digits' be 0 to 
+
+# Result
+stargazer( data = more_cars,  
+           type = "text"
+)
+
+
+```
+
+## Part C: Model summary
+Before we can go about making tables of model summaries, we will need some models to visualize.
+
+In the code chunk below, we will create 2 Generalized Linear Models (GLMs), one predicting highway fuel efficiency and another for city efficiency. The function works a lot like lm() but the output will give access to different summary statistics, because of how the regression is implemented.
+
+```{r stargazer_challenge_C_model}
+
+# Run this chunk to populate the two linear regression models
+more_cars_model_hwy = glm( formula = hwy ~ cyl + displ, data = more_cars )
+more_cars_model_cty = glm( formula = cty ~ cyl + displ, data = more_cars)
+
+```
+
+
+Now that we have our models fit to the data, we will visualize them side-by-side, with customizations that make sense for this data. For this table, you will specify the `covariate.labels`, `column.labels`, while hiding the `model.numbers` and dependent variables (`dep.var.labels.include`). See the comments for an explanation of how exactly to set each argument.
+
+
+```{r stargazer_challenge_C_output}
+
+# Here are the arguments you will need:
+# covariate.labels =       # vector of labels to override the covariate labels (cylinders, displacement, intecept/constant)
+# column.labels =          # vector of labels to be displayed above our to models, in lieu of model.numbers
+# model.numbers =          # let 'model.numbers' be FALSE to hide (1) and (2) over our models
+# dep.var.labels.include = # let 'dep.var.lablels.include' be FALSE to hide redundant labels in this case
+
+# Putting all the pieces together to make a table of both model outputs
+stargazer( more_cars_model_hwy, more_cars_model_cty,     # The models
+           type = "text")       
+
+
+```
+
+[end]
